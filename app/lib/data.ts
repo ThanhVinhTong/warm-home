@@ -82,10 +82,23 @@ export async function getStats({ state, suburb }: { state?: string; suburb?: str
   const { db, client } = await dbConnect();
   try {
     let match = {};
-    if (state) match = { state };
-    if (suburb) {
-      const suburbDoc = await db.collection('suburbs').findOne({ name: suburb });
-      if (suburbDoc) match = { ...match, suburbId: suburbDoc.id };
+    if (state || suburb) {
+        // Build match criteria for suburbs
+        let suburbMatch = {};
+        if (state) suburbMatch = { ...suburbMatch, state };
+        if (suburb) suburbMatch = { ...suburbMatch, name: suburb };
+        
+        // Get suburb IDs that match the criteria
+        const matchingSuburbs = await db.collection('suburbs').find(suburbMatch).toArray();
+        const suburbIds = matchingSuburbs.map(s => s.id);
+        
+        console.log(`Found ${matchingSuburbs.length} matching suburbs:`, matchingSuburbs.map(s => ({ name: s.name, state: s.state })));
+        console.log(`Suburb IDs:`, suburbIds);
+        
+        // Match properties by suburb IDs
+        if (suburbIds.length > 0) {
+          match = { suburbId: { $in: suburbIds } };
+        }
     }
     
     const [stats] = await db.collection('properties').aggregate([

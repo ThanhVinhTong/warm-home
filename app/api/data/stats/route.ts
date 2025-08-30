@@ -6,8 +6,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const state = searchParams.get('state') || undefined;
     const suburb = searchParams.get('suburb') || undefined;
-    
+  
     const data = await getStats({ state, suburb });
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error fetching stats data:', error);
