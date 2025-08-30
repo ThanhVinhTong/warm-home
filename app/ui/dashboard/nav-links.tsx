@@ -4,6 +4,8 @@ import {
   UserGroupIcon,
   HomeIcon,
   DocumentDuplicateIcon,
+  ChartBarIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 
 import Link from 'next/link'
@@ -16,11 +18,20 @@ import { usePathname } from 'next/navigation';
 const links = [
   { name: 'Home', href: '/dashboard', icon: HomeIcon },
   {
-    name: 'Invoices',
-    href: '/dashboard/invoices',
-    icon: DocumentDuplicateIcon,
+    name: 'Overall Price',
+    href: '/dashboard/overall-price',
+    icon: ChartBarIcon, // Reuse or adjust icons as needed
   },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
+  {
+    name: 'Find House',
+    href: '/dashboard/find-house',
+    icon: HomeIcon,
+  },
+  {
+    name: 'Chatbot',
+    href: '/dashboard/chatbot',
+    icon: ChatBubbleLeftRightIcon, // Assuming an appropriate icon; adjust if needed
+  },
 ];
 
 export default function NavLinks() {
