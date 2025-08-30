@@ -18,13 +18,13 @@ const iconMap = {
 export default async function SummaryCards() {
   // Fetch data from API routes
   const [statesRes, suburbsRes, propertiesRes] = await Promise.all([
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/states`, {
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/data/states`, {
       cache: 'no-store'
     }),
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/suburb-overviews`, {
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/data/suburb-overviews`, {
       cache: 'no-store'
     }),
-    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/properties`, {
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}/api/data/properties`, {
       cache: 'no-store'
     })
   ]);
