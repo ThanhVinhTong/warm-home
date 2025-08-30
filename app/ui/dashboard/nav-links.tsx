@@ -16,11 +16,10 @@ import { usePathname } from 'next/navigation';
 // Map of links to display in the side navigation.
 // Depending on the size of the application, this would be stored in a database.
 const links = [
-  { name: 'Home', href: '/dashboard', icon: HomeIcon },
   {
     name: 'Overall Price',
-    href: '/dashboard/overall-price',
-    icon: ChartBarIcon, // Reuse or adjust icons as needed
+    href: '/dashboard',
+    icon: ChartBarIcon,
   },
   {
     name: 'Find House',
