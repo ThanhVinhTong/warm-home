@@ -1,35 +1,56 @@
 // Adapt from cards.tsx
 import {
   BanknotesIcon,
-  HomeIcon, // Adjusted icons
+  HomeIcon,
   ChartBarIcon,
   MapPinIcon,
+  FlagIcon,
 } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
-import { fetchSuburbOverviews, fetchProperties } from '@/app/lib/data';
 
 const iconMap = {
+  states: FlagIcon,
   suburbs: MapPinIcon,
   properties: HomeIcon,
   avgPrice: ChartBarIcon,
-  totalValue: BanknotesIcon,
 };
 
 export default async function SummaryCards() {
-  const suburbs = await fetchSuburbOverviews();
-  const properties = await fetchProperties();
+  // Fetch data from API routes
+  const [statesRes, suburbsRes, propertiesRes] = await Promise.all([
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/states`, {
+      cache: 'no-store'
+    }),
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/suburb-overviews`, {
+      cache: 'no-store'
+    }),
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/properties`, {
+      cache: 'no-store'
+    })
+  ]);
+  
+  if (!statesRes.ok || !suburbsRes.ok || !propertiesRes.ok) {
+    throw new Error('Failed to fetch data');
+  }
+  
+  const states = await statesRes.json();
+  const suburbs = await suburbsRes.json();
+  const properties = await propertiesRes.json();
 
+  const numberOfStates = states.length;
   const numberOfSuburbs = suburbs.length;
-  const numberOfProperties = properties.length;
-  const avgPrice = (properties.reduce((sum, p) => sum + p.price, 0) / numberOfProperties || 0).toFixed(0);
-  const totalValue = properties.reduce((sum, p) => sum + p.price, 0).toLocaleString();
+  const numberOfHouses = properties.length;
+  
+  // Calculate average price across all states
+  const totalPrice = properties.reduce((sum: number, p: any) => sum + p.price, 0);
+  const avgPrice = numberOfHouses > 0 ? (totalPrice / numberOfHouses).toFixed(0) : '0';
 
   return (
     <>
+      <Card title="States" value={numberOfStates || 'N/A'} type="states" />
       <Card title="Suburbs" value={numberOfSuburbs || 'N/A'} type="suburbs" />
-      <Card title="Properties" value={numberOfProperties || 'N/A'} type="properties" />
+      <Card title="Houses" value={numberOfHouses || 'N/A'} type="properties" />
       <Card title="Avg Price" value={avgPrice ? `$${Number(avgPrice).toLocaleString()}` : 'N/A'} type="avgPrice" />
-      <Card title="Total Value" value={totalValue ? `$${totalValue}` : 'N/A'} type="totalValue" />
     </>
   );
 }
@@ -41,7 +62,7 @@ export function Card({
 }: {
   title: string;
   value: number | string;
-  type: 'suburbs' | 'properties' | 'avgPrice' | 'totalValue';
+  type: 'states' | 'suburbs' | 'properties' | 'avgPrice';
 }) {
   const Icon = iconMap[type];
 

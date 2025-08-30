@@ -4,12 +4,20 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import { lusitana } from '@/app/ui/fonts';
 import { Property } from '@/app/lib/definitions';
-import { fetchProperties } from '@/app/lib/data';
+
 
 export default async function LatestProperties() {
-  const properties = await fetchProperties(); // Fetch all or limit to latest
-  // Optionally sort by some 'date' field if added to Property type
-
+  // Fetch properties from API route
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/properties`, {
+    cache: 'no-store'
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch properties');
+  }
+  
+  const properties: Property[] = await res.json();
+  
   // Limit to latest 5 (add date field to Property type later for real sorting)
   const latestProperties = properties.slice(0, 5);
 
