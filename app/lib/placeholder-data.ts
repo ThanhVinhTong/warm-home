@@ -2,89 +2,72 @@
 // https://nextjs.org/learn/dashboard-app/fetching-data
 
 // Merge additional sample users (including some with 'disadvantaged' flag for chatbot testing)
-const users = [
+// warm-home/lib/placeholder-data.ts
+import { randomUUID } from 'crypto';
+
+export const users = [
   {
-    id: '410544b2-4001-4271-9855-fec4b6a6442a',
-    name: 'User',
-    email: 'user@nextmail.com',
-    password: '123456',
-    isTechDisadvantaged: false, // Flag for chatbot personalization
-  },
-  {
-    id: '410544b2-4001-4271-9855-fec4b6a6442b',
-    name: 'Jane Doe',
-    email: 'jane@example.com',
-    password: 'password123',
+    id: "u1",
+    name: "Alice Nguyen",
+    email: "alice@example.com",
+    password: "password123", // will be hashed
     isTechDisadvantaged: true,
   },
-];
-
-// Sample Australian suburbs with price overviews (mimicking Domain's Locations API)
-const suburbs = [
   {
-    id: 'suburb-1',
-    name: 'Sydney CBD',
-    state: 'NSW',
-    medianHousePrice: 1500000,
-    averageRent: 800,
-    population: 20000,
-    growthRate: 2.5, // Yearly price growth %
-  },
-  {
-    id: 'suburb-2',
-    name: 'Melbourne City',
-    state: 'VIC',
-    medianHousePrice: 1200000,
-    averageRent: 700,
-    population: 18000,
-    growthRate: 3.0,
-  },
-  {
-    id: 'suburb-3',
-    name: 'Brisbane CBD',
-    state: 'QLD',
-    medianHousePrice: 900000,
-    averageRent: 600,
-    population: 15000,
-    growthRate: 4.0,
+    id: "u2",
+    name: "Bob Tran",
+    email: "bob@example.com",
+    password: "password456",
   },
 ];
 
-// Sample properties (mimicking Domain's Properties & Listings APIs)
-const properties = [
-  {
-    id: 'property-1',
-    suburbId: 'suburb-1',
-    address: '123 Example St, Sydney CBD',
-    price: 1600000,
-    bedrooms: 3,
-    bathrooms: 2,
-    type: 'House',
-    status: 'For Sale',
-    description: 'Modern house in central Sydney with city views.',
-  },
-  {
-    id: 'property-2',
-    suburbId: 'suburb-2',
-    address: '456 Sample Rd, Melbourne City',
-    price: 1300000,
-    bedrooms: 2,
-    bathrooms: 1,
-    type: 'Apartment',
-    status: 'For Rent',
-    description: 'Cozy apartment near Melbourne amenities.',
-  },
-  {
-    id: 'property-3',
-    suburbId: 'suburb-3',
-    address: '789 Test Ave, Brisbane CBD',
-    price: 950000,
-    bedrooms: 4,
-    bathrooms: 3,
-    type: 'House',
-    status: 'Sold',
-    description: 'Spacious family home in Brisbane.',
-  },
-];
+const states: Record<string, string[]> = {
+  VIC: ["Footscray", "Richmond", "Carlton", "St Kilda", "Brunswick", "Hawthorn", "Fitzroy", "South Yarra", "Docklands", "Melton"],
+  NSW: ["Parramatta", "Liverpool", "Penrith", "Chatswood", "Manly", "Bondi", "Newtown", "Burwood", "Bankstown", "Blacktown"],
+  QLD: ["South Brisbane", "Fortitude Valley", "Sunnybank", "Chermside", "Logan", "Ipswich", "Springfield", "Cairns North", "Townsville", "Toowoomba"],
+  WA: ["Fremantle", "Joondalup", "Cottesloe", "Scarborough", "Subiaco", "Claremont", "Mandurah", "Armadale", "Rockingham", "Bunbury"],
+  SA: ["Glenelg", "Norwood", "Prospect", "Semaphore", "Mawson Lakes", "Unley", "Henley Beach", "Burnside", "Elizabeth", "Port Adelaide"],
+  TAS: ["Hobart", "Launceston", "Devonport", "Burnie", "Glenorchy", "Kingston", "New Norfolk", "Ulverstone", "George Town", "Scottsdale"],
+  NT: ["Darwin", "Palmerston", "Alice Springs", "Katherine", "Nhulunbuy", "Tennant Creek", "Humpty Doo", "Howard Springs", "Berry Springs", "Coolalinga"],
+  ACT: ["Belconnen", "Woden", "Gungahlin", "Tuggeranong", "Kingston", "Manuka", "Braddon", "Narrabundah", "Watson", "Lyneham"]
+};
 
-export { users, suburbs, properties };
+function random(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// --- Generate suburbs ---
+export const suburbs: any[] = [];
+export const properties: any[] = [];
+
+for (const [state, suburbList] of Object.entries(states)) {
+  for (const suburb of suburbList) {
+    const suburbId = `${state}-${suburb.replace(/\s+/g, "").toLowerCase()}`;
+
+    suburbs.push({
+      id: suburbId,
+      name: suburb,
+      state,
+      medianHousePrice: random(500000, 1500000),
+      averageRent: random(300, 800),
+      population: random(5000, 50000),
+      growthRate: parseFloat((Math.random() * 7).toFixed(1)), // 0–7%
+    });
+
+    // --- Generate 10 properties per suburb ---
+    for (let i = 0; i < 10; i++) {
+      properties.push({
+        id: `${suburbId}-p${i}`,
+        suburbId,
+        address: `${random(1, 200)} ${suburb} St, ${suburb} ${state}`,
+        price: random(400000, 2000000),
+        bedrooms: random(1, 5),
+        bathrooms: random(1, 3),
+        type: ["House", "Apartment", "Townhouse"][random(0, 2)],
+        status: ["For Sale", "Sold", "For Rent"][random(0, 2)],
+        description: `Lovely ${suburb} property with great amenities.`,
+        date: new Date(Date.now() - random(0, 365) * 24 * 60 * 60 * 1000),
+      });
+    }
+  }
+}

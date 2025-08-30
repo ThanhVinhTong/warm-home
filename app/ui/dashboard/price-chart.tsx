@@ -3,10 +3,19 @@ import { generateYAxis } from '@/app/lib/utils'; // Assuming this is still usefu
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
 import { Suburb } from '@/app/lib/definitions';
-import { fetchSuburbOverviews } from '@/app/lib/data';
+
 
 export default async function PriceChart() {
-  const suburbs = await fetchSuburbOverviews();
+  // Fetch suburbs from API route
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/data/suburb-overviews`, {
+    cache: 'no-store'
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch suburbs');
+  }
+  
+  const suburbs: Suburb[] = await res.json();
   const chartHeight = 350;
 
   // Sort suburbs by medianHousePrice descending for better visualization

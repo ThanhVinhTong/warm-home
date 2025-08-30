@@ -29,7 +29,8 @@ export type Property = {
   price: number;
   bedrooms: number;
   bathrooms: number;
-  type: string; // e.g., 'House', 'Apartment'
-  status: string; // e.g., 'For Sale', 'For Rent', 'Sold'
+  type: string;
+  status: string;
   description: string;
+  date?: Date; // Add for historical data
 };
