@@ -10,6 +10,7 @@ interface ChatInterfaceProps {
   isTyping: boolean;
   onSendMessage: (message: string) => void;
   onNewChat: () => void;
+  onUserActivity: () => void; // New prop to track user activity
 }
 
 export function ChatInterface({
@@ -18,7 +19,8 @@ export function ChatInterface({
   language,
   isTyping,
   onSendMessage,
-  onNewChat
+  onNewChat,
+  onUserActivity
 }: ChatInterfaceProps) {
   const [inputMessage, setInputMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -39,6 +41,20 @@ export function ChatInterface({
     }
   };
 
+  // Handle input changes and trigger activity tracking
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputMessage(e.target.value);
+    onUserActivity(); // Track typing as activity
+  };
+
+  // Handle quick question clicks
+  const handleQuickQuestion = (question: string) => {
+    if (session?.isActive) {
+      onUserActivity(); // Track click as activity
+      onSendMessage(question);
+    }
+  };
+
   const quickQuestions = getQuickQuestions(language);
 
   return (
@@ -50,9 +66,9 @@ export function ChatInterface({
           {quickQuestions.map((question, index) => (
             <button
               key={index}
-              onClick={() => session?.isActive && onSendMessage(question)}
+              onClick={() => handleQuickQuestion(question)}
               disabled={!session?.isActive}
-              className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {question}
             </button>
@@ -61,7 +77,11 @@ export function ChatInterface({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+        onScroll={onUserActivity} // Track scrolling as activity
+        onMouseMove={onUserActivity} // Track mouse movement as activity
+      >
         {messages.map((message) => (
           <div
             key={message.id}
@@ -106,7 +126,9 @@ export function ChatInterface({
             <input
               type="text"
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={handleInputChange}
+              onFocus={onUserActivity} // Track focus as activity
+              onBlur={onUserActivity} // Track blur as activity
               placeholder={getInputPlaceholder(language)}
               className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={!session?.isActive}
@@ -114,7 +136,8 @@ export function ChatInterface({
             <button
               type="submit"
               disabled={!inputMessage.trim() || !session?.isActive}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={onUserActivity} // Track button click as activity
+              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {getSendButtonText(language)}
             </button>
@@ -124,7 +147,7 @@ export function ChatInterface({
             <p className="text-gray-600 mb-2">{getSessionEndedMessage(language)}</p>
             <button
               onClick={onNewChat}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
             >
               {getNewChatButtonText(language)}
             </button>
@@ -141,7 +164,7 @@ export function ChatInterface({
   );
 }
 
-// Helper functions for translations
+// Helper functions for translations (same as before)
 function getQuickQuestions(language: Language): string[] {
   const questions = {
     en: [
@@ -228,12 +251,12 @@ function getSendButtonText(language: Language): string {
 
 function getSessionEndedMessage(language: Language): string {
   const messages = {
-    en: "Your session has ended. Start a new chat to continue.",
-    zh: "您的会话已结束。开始新聊天以继续。",
-    vi: "Phiên của bạn đã kết thúc. Bắt đầu cuộc trò chuyện mới để tiếp tục.",
-    ar: "انتهت جلستك. ابدأ محادثة جديدة للمتابعة.",
-    hi: "आपका सेशन समाप्त हो गया है। जारी रखने के लिए नई चैट शुरू करें।",
-    id: "Sesi Anda telah berakhir. Mulai obrolan baru untuk melanjutkan."
+    en: "Your session has ended due to inactivity. Start a new chat to continue.",
+    zh: "您的会话因无活动而结束。开始新聊天以继续。",
+    vi: "Phiên của bạn đã kết thúc do không hoạt động. Bắt đầu cuộc trò chuyện mới để tiếp tục.",
+    ar: "انتهت جلستك بسبب عدم النشاط. ابدأ محادثة جديدة للمتابعة.",
+    hi: "निष्क्रियता के कारण आपका सेशन समाप्त हो गया है। जारी रखने के लिए नई चैट शुरू करें।",
+    id: "Sesi Anda telah berakhir karena tidak aktif. Mulai obrolan baru untuk melanjutkan."
   };
   return messages[language];
 }

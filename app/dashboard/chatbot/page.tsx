@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChatInterface } from './components/ChatInterface';
 import { LanguageSelector } from './components/LanguageSelector';
 import { VolunteerModal } from './components/VolunteerModal';
@@ -20,6 +20,7 @@ export interface Message {
 export interface ChatSession {
   id: string;
   startTime: Date;
+  lastActivity: Date; // Track last activity for inactivity timer
   isActive: boolean;
   volunteerConnected: boolean;
   language: Language;
@@ -31,48 +32,77 @@ export default function ChatBotPage() {
   const [session, setSession] = useState<ChatSession | null>(null);
   const [showVolunteerModal, setShowVolunteerModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Refs for inactivity timer
+  const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<Date>(new Date());
+
+  // Reset inactivity timer - called whenever user is active
+  const resetInactivityTimer = useCallback(() => {
+    const now = new Date();
+    lastActivityRef.current = now;
+    
+    // Update session last activity
+    if (session?.isActive) {
+      setSession(prev => prev ? { ...prev, lastActivity: now } : null);
+    }
+
+    // Clear existing timeout
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+    }
+
+    // Set new 15-minute inactivity timeout
+    inactivityTimeoutRef.current = setTimeout(() => {
+      endSessionDueToInactivity();
+    }, 15 * 60 * 1000); // 15 minutes
+  }, [session?.isActive]);
 
   // Initialize session
   useEffect(() => {
     startNewSession();
     return () => {
-      if (sessionTimeoutRef.current) {
-        clearTimeout(sessionTimeoutRef.current);
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
       }
     };
   }, []);
 
+  // Reset timer whenever there's activity
+  useEffect(() => {
+    if (session?.isActive) {
+      resetInactivityTimer();
+    }
+  }, [session?.isActive, resetInactivityTimer]);
+
   const startNewSession = () => {
+    const now = new Date();
     const newSession: ChatSession = {
       id: Date.now().toString(),
-      startTime: new Date(),
+      startTime: now,
+      lastActivity: now,
       isActive: true,
       volunteerConnected: false,
       language: currentLanguage,
     };
 
     setSession(newSession);
+    lastActivityRef.current = now;
+    
     setMessages([{
       id: Date.now().toString(),
       content: getWelcomeMessage(currentLanguage),
       type: 'bot',
-      timestamp: new Date(),
+      timestamp: now,
       language: currentLanguage,
     }]);
 
-    // Set 15-minute timer
-    if (sessionTimeoutRef.current) {
-      clearTimeout(sessionTimeoutRef.current);
-    }
-    
-    sessionTimeoutRef.current = setTimeout(() => {
-      endSession();
-    }, 15 * 60 * 1000); // 15 minutes
+    // Start inactivity timer
+    resetInactivityTimer();
   };
 
-  const endSession = () => {
-    if (session) {
+  const endSessionDueToInactivity = () => {
+    if (session?.isActive) {
       setSession(prev => prev ? { ...prev, isActive: false, volunteerConnected: false } : null);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
@@ -82,6 +112,16 @@ export default function ChatBotPage() {
         language: currentLanguage,
       }]);
     }
+    
+    // Clear the timeout ref
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
+      inactivityTimeoutRef.current = null;
+    }
+  };
+
+  const endSession = () => {
+    endSessionDueToInactivity();
   };
 
   const handleLanguageChange = (language: Language) => {
@@ -89,10 +129,15 @@ export default function ChatBotPage() {
     if (session) {
       setSession(prev => prev ? { ...prev, language } : null);
     }
+    // Language change counts as activity
+    resetInactivityTimer();
   };
 
   const handleSendMessage = async (content: string) => {
     if (!session?.isActive) return;
+
+    // Reset inactivity timer - user is active
+    resetInactivityTimer();
 
     // Add user message
     const userMessage: Message = {
@@ -141,11 +186,21 @@ export default function ChatBotPage() {
       }]);
     }
     setShowVolunteerModal(false);
+    
+    // Connecting to volunteer counts as activity
+    resetInactivityTimer();
   };
 
   const handleNewChat = () => {
     setMessages([]);
     startNewSession();
+  };
+
+  // Handle user typing/interaction activity
+  const handleUserActivity = () => {
+    if (session?.isActive) {
+      resetInactivityTimer();
+    }
   };
 
   return (
@@ -173,6 +228,7 @@ export default function ChatBotPage() {
                     session={session}
                     language={currentLanguage}
                     onSessionEnd={endSession}
+                    lastActivityRef={lastActivityRef}
                   />
                 )}
               </div>
@@ -187,6 +243,7 @@ export default function ChatBotPage() {
             isTyping={isTyping}
             onSendMessage={handleSendMessage}
             onNewChat={handleNewChat}
+            onUserActivity={handleUserActivity}
           />
         </div>
       </div>
@@ -196,7 +253,10 @@ export default function ChatBotPage() {
         <VolunteerModal
           language={currentLanguage}
           onConnect={handleConnectVolunteer}
-          onClose={() => setShowVolunteerModal(false)}
+          onClose={() => {
+            setShowVolunteerModal(false);
+            resetInactivityTimer(); // Closing modal counts as activity
+          }}
         />
       )}
     </div>
@@ -218,12 +278,12 @@ function getWelcomeMessage(language: Language): string {
 
 function getSessionExpiredMessage(language: Language): string {
   const messages = {
-    en: "Your chat session has expired after 15 minutes. Please start a new chat to continue.",
-    zh: "您的聊天会话已在15分钟后过期。请开始新的聊天以继续。",
-    vi: "Phiên trò chuyện của bạn đã hết hạn sau 15 phút. Vui lòng bắt đầu cuộc trò chuyện mới để tiếp tục.",
-    ar: "انتهت صلاحية جلسة الدردشة الخاصة بك بعد 15 دقيقة. يرجى بدء محادثة جديدة للمتابعة.",
-    hi: "आपका चैट सेशन 15 मिनट बाद समाप्त हो गया है। जारी रखने के लिए कृपया नई चैट शुरू करें।",
-    id: "Sesi obrolan Anda telah berakhir setelah 15 menit. Silakan mulai obrolan baru untuk melanjutkan."
+    en: "Your chat session has expired due to 15 minutes of inactivity. Please start a new chat to continue.",
+    zh: "您的聊天会话因15分钟无活动而过期。请开始新的聊天以继续。",
+    vi: "Phiên trò chuyện của bạn đã hết hạn do không hoạt động trong 15 phút. Vui lòng bắt đầu cuộc trò chuyện mới để tiếp tục.",
+    ar: "انتهت صلاحية جلسة الدردشة بسبب عدم النشاط لمدة 15 دقيقة. يرجى بدء محادثة جديدة للمتابعة.",
+    hi: "निष्क्रियता के 15 मिनट के कारण आपका चैट सेशन समाप्त हो गया है। जारी रखने के लिए कृपया नई चैट शुरू करें।",
+    id: "Sesi obrolan Anda telah berakhir karena tidak aktif selama 15 menit. Silakan mulai obrolan baru untuk melanjutkan."
   };
   return messages[language];
 }

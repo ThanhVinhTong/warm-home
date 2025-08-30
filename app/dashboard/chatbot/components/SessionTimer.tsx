@@ -1,23 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, MutableRefObject } from 'react';
 import { ChatSession, Language } from '../page';
 
 interface SessionTimerProps {
   session: ChatSession;
   language: Language;
   onSessionEnd: () => void;
+  lastActivityRef: MutableRefObject<Date>;
 }
 
-export function SessionTimer({ session, language, onSessionEnd }: SessionTimerProps) {
+export function SessionTimer({ session, language, onSessionEnd, lastActivityRef }: SessionTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   useEffect(() => {
     if (!session.isActive) return;
 
     const updateTimer = () => {
-      const elapsed = Date.now() - session.startTime.getTime();
-      const remaining = Math.max(0, (15 * 60 * 1000) - elapsed);
+      const now = Date.now();
+      const lastActivity = lastActivityRef.current.getTime();
+      const timeSinceActivity = now - lastActivity;
+      const remaining = Math.max(0, (15 * 60 * 1000) - timeSinceActivity); // 15 minutes since last activity
+      
       setTimeLeft(remaining);
 
       if (remaining === 0) {
@@ -29,7 +33,7 @@ export function SessionTimer({ session, language, onSessionEnd }: SessionTimerPr
     const interval = setInterval(updateTimer, 1000);
 
     return () => clearInterval(interval);
-  }, [session, onSessionEnd]);
+  }, [session, onSessionEnd, lastActivityRef]);
 
   const formatTime = (ms: number): string => {
     const minutes = Math.floor(ms / 60000);
@@ -37,26 +41,17 @@ export function SessionTimer({ session, language, onSessionEnd }: SessionTimerPr
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const getTimerLabel = (language: Language): string => {
+  const getInactivityLabel = (language: Language): string => {
     const labels = {
-      en: "Time left:",
-      zh: "剩余时间：",
-      vi: "Thời gian còn lại:",
-      ar: "الوقت المتبقي:",
-      hi: "बचा हुआ समय:",
-      id: "Waktu tersisa:"
+      en: "(due to inactivity)",
+      zh: "（由于无活动）",
+      vi: "(do không hoạt động)",
+      ar: "(بسبب عدم النشاط)",
+      hi: "(निष्क्रियता के कारण)",
+      id: "(karena tidak aktif)"
     };
     return labels[language];
   };
 
   if (!session.isActive) return null;
-
-  return (
-    <div className="text-sm text-blue-100">
-      <span>{getTimerLabel(language)} </span>
-      <span className={`font-mono ${timeLeft < 300000 ? 'text-yellow-300' : ''}`}>
-        {formatTime(timeLeft)}
-      </span>
-    </div>
-  );
 }
