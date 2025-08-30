@@ -1,87 +1,220 @@
-# Warm Home
+# Warm Home 🏠
 
-Warm Home is a Next.js application for analyzing house prices in Australian suburbs, helping users find houses using Domain APIs, and providing a chatbot for users with technology disadvantages.
+Warm Home is a comprehensive Next.js application for analyzing house prices across Australian suburbs, providing interactive data visualization, and helping users make informed real estate decisions.
 
-## Features
+## ✨ Features
 
-- **Overall Price Analysis**: Dashboard with charts and summaries of suburb median house prices, growth rates, and more.
-- **Find House**: Search and view properties based on sample data or integrated Domain APIs.
-- **Chatbot**: A user-friendly chatbot to assist those less familiar with technology in navigating the app.
-- **Database Integration**: Uses MongoDB Atlas for storing and fetching suburb and property data.
+### 🎯 **Core Functionality**
+- **House Price Analysis Dashboard**: Comprehensive analytics with interactive charts and statistics
+- **Multi-Level Data Filtering**: State → Suburb cascading filters for precise data exploration
+- **Real-Time Data Visualization**: Dynamic charts that update based on user selections
+- **Property Search & Management**: Find and analyze properties with detailed information
+- **User-Friendly Interface**: Designed for both tech-savvy users and those needing assistance
 
-## Prerequisites
+### 📊 **Analytics & Charts**
+- **Bar Charts**: House prices by suburb, filtered by state
+- **Line Graphs**: Price trends over time for specific suburbs
+- **State Comparisons**: Average house prices across different states
+- **Statistical Overview**: Min/Max/Average price calculations
+- **Interactive Filters**: Searchable dropdowns with autocomplete
 
 - Node.js (v18+ recommended)
 - PNPM (or NPM) for package management
 - MongoDB Atlas account (free tier works)
 - Optional: Domain API key for real property data (from [developer.domain.com.au](https://developer.domain.com.au/))
 
-## Installation
+### 🎨 **User Experience**
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **Loading States**: Professional loading indicators and skeleton components
+- **Error Handling**: Graceful error handling with user-friendly messages
+- **Accessibility**: Proper labels, ARIA attributes, and keyboard navigation
 
-1. Clone the repository:
-   ```
+## 🚀 **Getting Started**
+
+### Prerequisites
+- **Node.js** (v18+ recommended)
+- **PNPM** or **NPM** for package management
+- **MongoDB Atlas** account (free tier works perfectly)
+- **Modern Browser** with ES6+ support
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
    git clone https://github.com/yourusername/warm-home.git
    cd warm-home
    ```
 
-2. Install dependencies:
-   ```
+2. **Install dependencies**:
+   ```bash
    pnpm install
+   # or
+   npm install
    ```
-   (If using NPM: `npm install`)
 
-3. Set up environment variables: Create a `.env.local` file in the root directory and add your MongoDB connection string:
-   ```
+3. **Set up environment variables**:
+   Create a `.env.local` file in the root directory:
+   ```env
    MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>?retryWrites=true&w=majority
+   NEXT_PUBLIC_BASE_URL=http://localhost:3000
    ```
-   - Replace placeholders with your Atlas details.
-   - For Domain API integration, add `DOMAIN_API_KEY=your-key` (implement in relevant files as needed).
 
-## Running the App
-
-1. Start the development server:
-   ```
+4. **Start the development server**:
+   ```bash
    pnpm dev
+   # or
+   npm run dev
    ```
-   (Or `npm run dev`)
 
-2. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. **Open your browser** and navigate to [http://localhost:3000](http://localhost:3000)
 
-3. Navigate to the dashboard at `/dashboard` to view price overviews, properties, and more.
+## 🗃️ **Database Setup**
 
-## Seeding Data
+### Seeding Sample Data
+The app includes comprehensive sample data for testing:
 
-The app uses sample data from `app/lib/placeholder-data.ts`. To populate your MongoDB database:
+1. **Ensure the app is running**
+2. **Visit** [http://localhost:3000/seed](http://localhost:3000/seed)
+3. **Check the response**: `{ "message": "Database seeded successfully" }`
 
-1. Ensure the app is running.
-2. Visit [http://localhost:3000/seed](http://localhost:3000/seed) in your browser.
-   - This inserts sample suburbs (e.g., Sydney CBD) and properties into the database.
-   - Response: `{ "message": "Database seeded successfully" }`
-   - Re-run as needed; it's idempotent (avoids duplicates).
+### Sample Data Includes
+- **8 States**: VIC, NSW, QLD, WA, SA, TAS, NT, ACT
+- **80 Suburbs**: 10 suburbs per state with realistic data
+- **800 Properties**: 10 properties per suburb with varied characteristics
+- **Price Ranges**: $400K - $2M with realistic variations
+- **Property Types**: Houses, Apartments, Townhouses
 
-If seeding fails, check console logs for errors (e.g., connection issues) and verify your MongoDB setup.
+## 📱 **Usage Guide**
 
-## Usage
+### 🏠 **Landing Page** (`/`)
+- **Welcome Screen**: Introduction to Warm Home features
+- **Feature Overview**: Market analysis, property search, price insights
+- **Quick Navigation**: Direct access to dashboard
 
-- **Dashboard (/dashboard)**: View summaries, price charts, and latest properties.
-- **Overall Price (/dashboard/overall-price)**: Detailed suburb price analysis (expand as needed).
-- **Find House (/dashboard/find-house)**: Property search interface (integrate Domain APIs here).
-- **Chatbot (/dashboard/chatbot)**: Chat interface for simplified assistance.
+### 📊 **Dashboard** (`/dashboard`)
+- **Summary Cards**: States count, suburbs count, houses count, average price
+- **Price Charts**: Suburb median prices visualization
+- **Latest Properties**: Recent property listings
+- **House Price Analysis**: Comprehensive analytics section
 
-To integrate real Domain APIs:
-- Sign up at [developer.domain.com.au](https://developer.domain.com.au/).
-- Use packages like Properties & Locations in your fetch functions (e.g., in `app/lib/data.ts`).
+### 📈 **House Price Analysis**
+1. **Bar Chart Section**: Select state → view suburb prices
+2. **Line Graph Section**: Select state → search suburb → view trends
+3. **City Comparison**: View average prices across states
+4. **Statistics Section**: Select state → optional suburb → view min/max/avg
 
-## Contributing
+### 🔍 **Navigation Features**
+- **State Selection**: Dropdown with all available states
+- **Suburb Search**: Type-to-search with autocomplete
+- **Cascading Filters**: State → Suburb → Data loading
+- **Loading States**: Professional feedback during data fetching
 
-1. Fork the repo.
-2. Create a feature branch: `git checkout -b feature/new-feature`.
-3. Commit changes: `git commit -m 'Add new feature'`.
-4. Push: `git push origin feature/new-feature`.
-5. Open a Pull Request.
+## 🛠️ **Technical Architecture**
 
-## License
+### **Frontend**
+- **Next.js 15**: Latest version with App Router
+- **React 18**: Modern React with hooks and Suspense
+- **TypeScript**: Full type safety and better development experience
+- **Tailwind CSS**: Utility-first CSS framework for responsive design
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### **Backend**
+- **API Routes**: Server-side data processing
+- **MongoDB**: NoSQL database with aggregation pipelines
+- **Data Validation**: Type-safe data handling
+- **Error Handling**: Comprehensive error management
 
-For questions, open an issue or contact the maintainer.
+### **Data Flow**
+1. **User Selection** → State/Suburb filters
+2. **API Calls** → MongoDB queries with proper aggregation
+3. **Data Processing** → Format and structure for charts
+4. **UI Updates** → Dynamic rendering with loading states
+
+## 🔧 **Development**
+
+### **Project Structure**
+```
+warm-home/
+├── app/                    # Next.js App Router
+│   ├── api/               # API routes
+│   ├── dashboard/         # Dashboard pages
+│   ├── ui/                # Reusable UI components
+│   └── lib/               # Utility functions
+├── components/             # Shared components
+├── public/                 # Static assets
+└── package.json           # Dependencies
+```
+
+### **Key Components**
+- **Chart Components**: Recharts-based visualizations
+- **Skeleton Components**: Loading state placeholders
+- **Filter Components**: State and suburb selection
+- **Layout Components**: Dashboard structure and navigation
+
+### **API Endpoints**
+- `/api/data/states` - Get all states
+- `/api/data/suburbs` - Get suburbs by state
+- `/api/data/properties` - Get properties with filters
+- `/api/data/bar-chart` - Bar chart data
+- `/api/data/line-graph` - Line graph data
+- `/api/data/stats` - Statistical calculations
+
+## 🚀 **Deployment**
+
+### **Environment Variables**
+- `MONGODB_URI`: MongoDB connection string
+- `NEXT_PUBLIC_BASE_URL`: Public URL for API calls
+
+### **Build Commands**
+```bash
+# Development
+pnpm dev
+
+# Production build
+pnpm build
+pnpm start
+
+# Linting
+pnpm lint
+```
+
+## 🤝 **Contributing**
+
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and test thoroughly
+4. **Commit with clear messages**: `git commit -m 'Add amazing feature'`
+5. **Push to your branch**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request** with detailed description
+
+### **Development Guidelines**
+- **TypeScript**: Use strict typing
+- **Component Design**: Follow React best practices
+- **Error Handling**: Implement proper error boundaries
+- **Testing**: Add tests for new features
+- **Documentation**: Update README for new features
+
+## 📄 **License**
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 **Support**
+
+- **Issues**: Open a GitHub issue for bugs or feature requests
+- **Discussions**: Use GitHub Discussions for questions and ideas
+- **Documentation**: Check this README and code comments
+
+## 🔮 **Future Enhancements**
+
+- **Real-time Data**: Live property updates
+- **Advanced Filters**: More sophisticated search options
+- **User Accounts**: Personalized dashboards
+- **Mobile App**: React Native companion app
+- **AI Insights**: Machine learning price predictions
+
+---
+
+**Built with ❤️ for the Australian real estate community**
+
+*For questions, support, or collaboration, reach out through GitHub or open an issue.*
