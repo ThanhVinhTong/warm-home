@@ -8,8 +8,6 @@ import {
   StatsSectionSkeleton
 } from '@/app/ui/skeletons';
 import SummaryCards from '@/app/ui/dashboard/summary-cards';
-import PriceChart from '@/app/ui/dashboard/price-chart';
-import LatestProperties from '@/app/ui/dashboard/latest-properties';
 import BarChartSection from '@/app/ui/components/price/BarChartSection';
 import LineGraphSection from '@/app/ui/components/price/LineGraphSection';
 import CityComparisonChart from '@/app/ui/components/price/CityComparisonChart';

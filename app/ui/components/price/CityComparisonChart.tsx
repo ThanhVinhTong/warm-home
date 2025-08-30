@@ -24,10 +24,22 @@ export default function CityComparisonChart() {
   return (
     <div className={inter.className}>
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={data}>
-          <XAxis dataKey="state" />
-          <YAxis />
-          <Tooltip formatter={(value: number) => `$${value.toLocaleString()}`} />
+        <BarChart 
+          data={data}
+        >
+          <XAxis 
+            dataKey="state" 
+            tick={{ fontSize: 12 }}
+          />
+          <YAxis 
+            tick={{ fontSize: 12 }}
+            tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+            width={60}
+          />
+          <Tooltip 
+            formatter={(value: number) => `$${value.toLocaleString()}`}
+            labelStyle={{ fontSize: 12 }}
+          />
           <Bar dataKey="avgMedianPrice" fill="#82ca9d" />
         </BarChart>
       </ResponsiveContainer>
