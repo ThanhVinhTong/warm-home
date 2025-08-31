@@ -40,6 +40,15 @@ export function ChatInterface({
     scrollToBottom();
   }, [messages, isTyping, displayedText]);
 
+  // Debug logging for messages
+  useEffect(() => {
+    console.log('Messages updated in ChatInterface:', messages);
+    console.log('Messages length:', messages.length);
+    if (messages.length > 0) {
+      console.log('Last message:', messages[messages.length - 1]);
+    }
+  }, [messages]);
+
   // Streaming text effect for bot messages
   useEffect(() => {
     const lastMessage = messages[messages.length - 1];
@@ -183,133 +192,21 @@ export function ChatInterface({
         onScroll={onUserActivity}
         onMouseMove={onUserActivity}
       >
-        {messages.map((message, messageIndex) => {
-          const isStreaming = streamingMessageId === message.id;
-          const contentToShow = isStreaming ? displayedText : message.content;
-          const isFeedbackGiven = feedbackGiven.has(message.questionId || '');
-          
-          return (
-            <div key={message.id}>
+       {messages.map((message, messageIndex) => (
+          <div key={`${message.id}-${messageIndex}`}>
+            <div className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg shadow-sm ${
+                  message.type === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+                }`}
               >
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg relative shadow-sm ${
-                    message.type === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
-                      : message.type === 'system'
-                      ? 'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800 border border-yellow-300'
-                      : message.type === 'feedback'
-                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-800 border border-blue-200'
-                      : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800'
-                  }`}
-                >
-                  {/* AI confidence indicator for bot messages */}
-                  {message.type === 'bot' && message.confidence && (
-                    <div className="absolute -top-2 -right-2">
-                      <span 
-                        className={`inline-block w-3 h-3 rounded-full shadow-sm ${
-                          message.confidence === 'high' ? 'bg-green-400' : 
-                          message.confidence === 'medium' ? 'bg-yellow-400' : 'bg-red-400'
-                        }`} 
-                        title={`AI Confidence: ${message.confidence}`}
-                      ></span>
-                    </div>
-                  )}
-                  
-                  {/* Enhanced message content */}
-                  <div className="text-sm">
-                    {message.type === 'bot' ? (
-                      <div className="space-y-1">
-                        {formatMessage(contentToShow)}
-                      </div>
-                    ) : (
-                      <p className="whitespace-pre-wrap leading-relaxed">{contentToShow}</p>
-                    )}
-                  </div>
-                  
-                  {/* Streaming cursor */}
-                  {isStreaming && (
-                    <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>
-                  )}
-                  
-                  {/* Action indicator */}
-                  {message.hasActions && !isStreaming && (
-                    <div className="mt-2 text-xs text-gray-600 flex items-center">
-                      <span className="mr-1">📋</span>
-                      {getActionIndicatorText(language)}
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-xs opacity-70">
-                      {message.timestamp.toLocaleTimeString()}
-                    </p>
-                    {message.type === 'bot' && (
-                      <span className="text-xs opacity-50 flex items-center">
-                        <span className="mr-1">🤖</span>
-                        AI
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <p>{message.content}</p>
+                <p className="text-xs">{message.timestamp.toLocaleTimeString()}</p>
               </div>
-
-              {/* Connect with Volunteer Button - Show after each bot response */}
-              {message.type === 'bot' && !isStreaming && (
-                <div className="flex justify-start mt-3">
-                  <button
-                    onClick={handleConnectVolunteer}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
-                  >
-                    <span>🤝</span>
-                    <span>{getConnectVolunteerText(language)}</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Enhanced Feedback Buttons - Hide after feedback is given */}
-              {message.type === 'feedback' && message.questionId && !isFeedbackGiven && (
-                <div className="flex justify-start mt-3">
-                  <div className="flex space-x-3">
-                    <button
-                      onClick={() => handleFeedbackClick(true, message.questionId!)}
-                      className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm rounded-lg hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
-                    >
-                      <span>👍</span>
-                      <span>{getYesButtonText(language)}</span>
-                    </button>
-                    <button
-                      onClick={() => handleFeedbackClick(false, message.questionId!)}
-                      className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
-                    >
-                      <span>👎</span>
-                      <span>{getNoButtonText(language)}</span>
-                    </button>
-                    <button
-                      onClick={handleConnectVolunteer}
-                      className="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm rounded-lg hover:from-purple-600 hover:to-purple-700 transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg"
-                    >
-                      <span>🤝</span>
-                      <span>{getConnectVolunteerText(language)}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Thank you message after feedback */}
-              {message.type === 'feedback' && message.questionId && isFeedbackGiven && (
-                <div className="flex justify-start mt-3">
-                  <div className="px-4 py-2 bg-gradient-to-r from-green-100 to-green-200 text-green-800 text-sm rounded-lg border border-green-300 flex items-center space-x-2">
-                    <span>✨</span>
-                    <span>{getThankYouForFeedbackText(language)}</span>
-                  </div>
-                </div>
-              )}
             </div>
-          );
-        })}
-
+          </div>
+        ))}
+        
         {/* Enhanced typing indicator with animated dots */}
         {isTyping && (
           <div className="flex justify-start">

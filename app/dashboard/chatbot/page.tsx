@@ -57,6 +57,21 @@ export default function ChatBotPage() {
   
   const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<Date>(new Date());
+  const messagesRef = useRef<Message[]>([]);
+
+  // Update ref whenever messages change
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
+  // Debug: Monitor messages changes
+  useEffect(() => {
+    console.log('Messages state changed:', messages);
+    console.log('Messages length:', messages.length);
+    if (messages.length > 0) {
+      console.log('Last message:', messages[messages.length - 1].content);
+    }
+  }, [messages]);
 
   const resetInactivityTimer = useCallback(() => {
     const now = new Date();
@@ -213,7 +228,12 @@ export default function ChatBotPage() {
     return newContext;
   };
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = (content: string) => {
+    console.log('=== handleSendMessage called ===');
+    console.log('Content:', content);
+    console.log('Session active:', session?.isActive);
+    console.log('Current messages length:', messages.length);
+    
     if (!session?.isActive) return;
 
     resetInactivityTimer();
@@ -231,7 +251,16 @@ export default function ChatBotPage() {
       language: currentLanguage,
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    console.log('About to add user message:', userMessage);
+    console.log('Current messages before adding:', messages);
+
+    // Add user message immediately and ensure it's rendered
+    setMessages(prev => {
+      const newMessages = [...prev, userMessage];
+      return newMessages;
+    });
+    
+    // Show typing indicator immediately after user message
     setIsTyping(true);
 
     const attemptCount = (session.questionAttempts[questionId] || 0) + 1;
@@ -244,109 +273,112 @@ export default function ChatBotPage() {
       }
     } : null);
 
-    try {
-      // Use AI service for smart responses with updated timestamp
-      const aiResponse = await aiService.getResponse(content, {
-        role: updatedContext.role,
-        issueType: updatedContext.issueType,
-        urgency: updatedContext.urgency,
-        conversationHistory: updatedContext.conversationHistory,
-        language: currentLanguage,
-        userLogin: 'Karl-Sue',
-        timestamp: '2025-08-30 16:24:47' // Updated timestamp
-      });
+    // Process AI response asynchronously
+    (async () => {
+      try {
+        // Use AI service for smart responses with updated timestamp
+        const aiResponse = await aiService.getResponse(content, {
+          role: updatedContext.role,
+          issueType: updatedContext.issueType,
+          urgency: updatedContext.urgency,
+          conversationHistory: updatedContext.conversationHistory,
+          language: currentLanguage,
+          userLogin: 'Karl-Sue',
+          timestamp: '2025-08-30 16:24:47' // Updated timestamp
+        });
 
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: aiResponse.content,
-        type: 'bot',
-        timestamp: new Date(),
-        language: currentLanguage,
-        questionId: questionId,
-        confidence: aiResponse.confidence,
-        hasActions: (aiResponse.suggestedActions?.length || 0) > 0
-      };
+        const botMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: aiResponse.content,
+          type: 'bot',
+          timestamp: new Date(),
+          language: currentLanguage,
+          questionId: questionId,
+          confidence: aiResponse.confidence,
+          hasActions: (aiResponse.suggestedActions?.length || 0) > 0
+        };
 
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
+        setMessages(prev => [...prev, botMessage]);
+        setIsTyping(false);
 
-      // Handle response based on AI assessment
-      if (aiResponse.isHousingRelated) {
-        if (aiResponse.confidence === 'high' || aiResponse.confidence === 'medium') {
-          // Good response, ask for feedback
+        // Handle response based on AI assessment
+        if (aiResponse.isHousingRelated) {
+          if (aiResponse.confidence === 'high' || aiResponse.confidence === 'medium') {
+            // Good response, ask for feedback
+            setTimeout(() => {
+              setPendingFeedback(botMessage.id);
+              setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                content: getFeedbackMessage(currentLanguage),
+                type: 'feedback',
+                timestamp: new Date(),
+                language: currentLanguage,
+                questionId: questionId,
+              }]);
+            }, 2000);
+          } else if (aiResponse.confidence === 'low' || attemptCount >= 2) {
+            // Low confidence or multiple attempts, offer volunteer
+            setTimeout(() => {
+              setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                content: getOfferVolunteerMessage(currentLanguage),
+                type: 'system',
+                timestamp: new Date(),
+                language: currentLanguage,
+              }]);
+              setTimeout(() => setShowVolunteerModal(true), 1000);
+            }, 1500);
+          }
+
+          // Show urgent action warning if needed
+          if (aiResponse.requiresUrgentAction) {
+            setTimeout(() => {
+              setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                content: getUrgentActionWarning(currentLanguage),
+                type: 'system',
+                timestamp: new Date(),
+                language: currentLanguage,
+              }]);
+            }, 3000);
+          }
+        } else {
+          // Off-topic, show clarification
           setTimeout(() => {
-            setPendingFeedback(botMessage.id);
             setMessages(prev => [...prev, {
               id: Date.now().toString(),
-              content: getFeedbackMessage(currentLanguage),
+              content: getHousingTopicReminder(currentLanguage),
               type: 'feedback',
               timestamp: new Date(),
               language: currentLanguage,
               questionId: questionId,
             }]);
-          }, 2000);
-        } else if (aiResponse.confidence === 'low' || attemptCount >= 2) {
-          // Low confidence or multiple attempts, offer volunteer
-          setTimeout(() => {
-            setMessages(prev => [...prev, {
-              id: Date.now().toString(),
-              content: getOfferVolunteerMessage(currentLanguage),
-              type: 'system',
-              timestamp: new Date(),
-              language: currentLanguage,
-            }]);
-            setTimeout(() => setShowVolunteerModal(true), 1000);
-          }, 1500);
+          }, 1000);
         }
 
-        // Show urgent action warning if needed
-        if (aiResponse.requiresUrgentAction) {
-          setTimeout(() => {
-            setMessages(prev => [...prev, {
-              id: Date.now().toString(),
-              content: getUrgentActionWarning(currentLanguage),
-              type: 'system',
-              timestamp: new Date(),
-              language: currentLanguage,
-            }]);
-          }, 3000);
-        }
-      } else {
-        // Off-topic, show clarification
+      } catch (error) {
+        console.error('AI Error:', error);
+        
+        // Fallback to basic response
+        const fallbackMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: getAIErrorFallback(currentLanguage),
+          type: 'bot',
+          timestamp: new Date(),
+          language: currentLanguage,
+          questionId: questionId,
+          confidence: 'low'
+        };
+
+        setMessages(prev => [...prev, fallbackMessage]);
+        setIsTyping(false);
+
+        // Offer volunteer after AI error
         setTimeout(() => {
-          setMessages(prev => [...prev, {
-            id: Date.now().toString(),
-            content: getHousingTopicReminder(currentLanguage),
-            type: 'feedback',
-            timestamp: new Date(),
-            language: currentLanguage,
-            questionId: questionId,
-          }]);
-        }, 1000);
+          setShowVolunteerModal(true);
+        }, 2000);
       }
-
-    } catch (error) {
-      console.error('AI Error:', error);
-      
-      // Fallback to basic response
-      const fallbackMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: getAIErrorFallback(currentLanguage),
-        type: 'bot',
-        timestamp: new Date(),
-        language: currentLanguage,
-        questionId: questionId,
-        confidence: 'low'
-      };
-
-      setMessages(prev => [...prev, fallbackMessage]);
-      setIsTyping(false);
-
-      // Offer volunteer after AI error
-      setTimeout(() => {
-        setShowVolunteerModal(true);
-      }, 2000);
-    }
+    })();
   };
 
   const handleFeedback = (isHelpful: boolean, questionId: string) => {
@@ -415,7 +447,7 @@ export default function ChatBotPage() {
       resetInactivityTimer();
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
