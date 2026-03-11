@@ -15,3 +15,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }
+
+// automation-note [2026-03-12T02:51:17.925938]
+// Add note to cover fallback behavior when upstream data is missing.
