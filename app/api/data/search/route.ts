@@ -49,3 +49,6 @@ export async function GET(req: Request) {
   });
 }
 
+
+// automation-note [2026-03-12T02:50:14.988298]
+// Add note to cover empty, short, and unicode password edge cases.
