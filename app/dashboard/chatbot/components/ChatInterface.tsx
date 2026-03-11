@@ -167,7 +167,7 @@ export function ChatInterface({
   return (
     <div className="flex flex-col h-128 md:h-128 border rounded-lg shadow-lg bg-white">
       {/* Enhanced Quick Questions */}
-      <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+      <div className="p-4 border-b bg-gradient-to-r from-blue-50 to-teal-50">
         <p className="text-sm text-gray-600 mb-2 flex items-center">
           <span className="mr-2">🚀</span>
           {getQuickQuestionsLabel(language)}
@@ -178,7 +178,7 @@ export function ChatInterface({
               key={index}
               onClick={() => handleQuickQuestion(question)}
               disabled={!session?.isActive}
-              className="px-3 py-1 bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 rounded-full text-xs hover:from-blue-200 hover:to-purple-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-blue-200 hover:shadow-sm"
+              className="px-3 py-1 bg-gradient-to-r from-blue-100 to-teal-100 text-teal-700 rounded-full text-xs hover:from-blue-200 hover:to-teal-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-blue-200 hover:shadow-sm"
             >
               {question}
             </button>
@@ -197,10 +197,10 @@ export function ChatInterface({
             <div className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg shadow-sm ${
-                  message.type === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+                  message.type === 'user' ? 'bg-blue-400 text-white' : 'bg-warmGray-100 text-gray-800'
                 }`}
               >
-                <p>{message.content}</p>
+                {formatMessage(message.content)}
                 <p className="text-xs">{message.timestamp.toLocaleTimeString()}</p>
               </div>
             </div>
@@ -210,7 +210,7 @@ export function ChatInterface({
         {/* Enhanced typing indicator with animated dots */}
         {isTyping && (
           <div className="flex justify-start">
-            <div className="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 px-4 py-3 rounded-lg flex items-center space-x-3 shadow-sm">
+            <div className="bg-gradient-to-r from-gray-100 to-warmGray-100 text-teal-800 px-4 py-3 rounded-lg flex items-center space-x-3 shadow-sm">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -228,7 +228,7 @@ export function ChatInterface({
       </div>
 
       {/* Enhanced Input Area */}
-      <div className="p-4 border-t bg-gradient-to-r from-gray-50 to-blue-50">
+      <div className="p-4 border-t bg-gradient-to-r from-gray-50 to-teal-50">
         {session?.isActive ? (
           <form onSubmit={handleSubmit} className="flex space-x-3">
             <div className="flex-1 relative">
@@ -252,7 +252,7 @@ export function ChatInterface({
               type="submit"
               disabled={!inputMessage.trim() || !session?.isActive}
               onClick={onUserActivity}
-              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2"
+              className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2"
             >
               <span>✨</span>
               <span>{getSendButtonText(language)}</span>
@@ -263,7 +263,7 @@ export function ChatInterface({
             <p className="text-gray-600 mb-3">{getSessionEndedMessage(language)}</p>
             <button
               onClick={onNewChat}
-              className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2 mx-auto"
+              className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-200 shadow-md hover:shadow-lg flex items-center space-x-2 mx-auto"
             >
               <span>🚀</span>
               <span>{getNewChatButtonText(language)}</span>
@@ -272,7 +272,7 @@ export function ChatInterface({
         )}
         
         {session?.volunteerConnected && (
-          <div className="mt-3 p-3 bg-gradient-to-r from-green-100 to-green-200 border border-green-300 rounded-xl text-green-800 text-sm flex items-center shadow-sm">
+          <div className="mt-3 p-3 bg-gradient-to-r from-green-100 to-teal-100 border border-green-300 rounded-xl text-teal-800 text-sm flex items-center shadow-sm">
             <span className="mr-2">✅</span>
             {getVolunteerConnectedMessage(language)}
           </div>
@@ -435,7 +435,7 @@ function getSendButtonText(language: Language): string {
 
 function getSessionEndedMessage(language: Language): string {
   const messages: Partial<Record<Language, string>> = {
-    en: "Your AI session has ended due to inactivity. Start a new chat to continue with intelligent assistance.",
+    en: "Sorry, your session timed out due to inactivity. Let's start a fresh chat – we're here to help with your housing questions!",
     zh: "您的AI会话因无活动而结束。开始新聊天以继续获得智能协助。",
     vi: "Phiên AI của bạn đã kết thúc do không hoạt động. Bắt đầu cuộc trò chuyện mới để tiếp tục với hỗ trợ thông minh.",
     ar: "انتهت جلسة الذكاء الاصطناعي بسبب عدم النشاط. ابدأ محادثة جديدة للمتابعة بمساعدة ذكية.",
