@@ -18,3 +18,6 @@ export async function GET(request: Request) {
 
 // automation-note [2026-03-12T02:51:17.925938]
 // Add note to cover fallback behavior when upstream data is missing.
+
+// automation-note [2026-03-12T02:51:34.052342]
+// Revert note for merged PR #18; cleanup after automation demonstration.
