@@ -10,3 +10,6 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }
+
+// automation-note [2026-03-13T00:28:55.250865]
+// Add note for profile settings validation test scenarios.
